@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+
+{% block title %}Rekisteröidy käyttäjäksi{% endblock %}
+
+{% block content %}
+<h2>Luo tunnus</h2>
+
+<form action="/create" method="POST">
+    <div>
+        <label for="username">Käyttäjätunnus:</label>
+        <input type="text" name="username" id="username" required>
+    </div>
+    <div>
+        <label for="password1">Salasana:</label>
+        <input type="password" name="password1" id="password1" required>
+    </div>
+    <div>
+        <label for="password2">Salasana uudestaan:</label>
+        <input type="password" name="password2" id="password2" required>
+    </div>
+    <div>
+        <input type="submit" value="Rekisteröidy">
+    </div>
+</form>
+{% endblock %}
