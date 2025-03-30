@@ -128,10 +128,10 @@ def add_movie():
         db.session.commit()
         
         flash('Elokuva lisätty onnistuneesti!')
-        return redirect(url_for('movies'))  # Palataan elokuvat-sivulle
+        return redirect(url_for('movies'))
     return render_template('add_movie.html')
 
 if __name__ == '__main__':
-    with app.app_context():  # Asetetaan sovelluksen konteksti
-        db.create_all()  # Luo tietokannan taulut
+    with app.app_context():
+        db.create_all()
     app.run(debug=True)
