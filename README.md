@@ -26,4 +26,4 @@ $ pip install flask_sqlalchemy
 3. Suorita sovellus:
     python app.py
 
-Pääasiallinen tietokohde on elokuva ja toissijainen tietokohde on arvostelu.
+Pääasiallinen tietokohde on elokuva ja toissijainen tietokohde on arvostelu (W.I.P).
