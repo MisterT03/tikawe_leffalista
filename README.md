@@ -1,10 +1,29 @@
-# Leffalista on web-sovellus, jossa käyttäjät voivat lisätä ja arvioida elokuvia. Sovellus on toteutettu Pythonilla ja Flaskilla, ja sen tiedot tallennetaan SQLite-tietokantaan.
-- Käyttäjä pystyy luomaan tunnuksen ja kirjautumaan sisään  
-- Käyttäjä pystyy lisäämään elokuvia sekä muokkaamaan ja poistamaan omia elokuviaan  
-- Käyttäjä näkee kaikki sovellukseen lisätyt elokuvat  
-- Käyttäjä pystyy etsimään elokuvia hakusanalla (nimi, genre)
-- Käyttäjäsivu näyttää käyttäjän lisäämät elokuvat ja arviot
-- Käyttäjä pystyy antamaan elokuville pisteitä (1–5 tähteä) ja kirjoittamaan kommentteja 
-- Jokaiselle elokuvalle voi asettaa genren (esim. toiminta, komedia, draama)
+# Tikawe Leffalista
+
+Tämä on elokuvatietokannan hallintasovellus, jossa käyttäjät voivat rekisteröityä, kirjautua sisään, lisätä elokuvia, muokata niitä, poistaa ja etsiä elokuvia.
+
+## Ominaisuudet
+
+- Käyttäjät voivat luoda tunnuksen ja kirjautua sisään
+- Käyttäjät voivat lisätä, muokata ja poistaa elokuvia
+- Elokuvia voi etsiä hakusanalla
+- Käyttäjät voivat kirjautua ulos
+
+## Teknologiat
+
+- Flask (Python Web Framework)
+- SQLite (Tietokanta)
+- HTML, CSS (Käyttöliittymä)
+
+## Käyttöohjeet
+
+1. Varmista, että sinulla on Python asennettuna.
+2. Asenna riippuvuudet:
+$ pip install flask
+$ pip install bcrypt
+$ pip install flask_sqlalchemy
+
+3. Suorita sovellus:
+    python app.py
 
 Pääasiallinen tietokohde on elokuva ja toissijainen tietokohde on arvostelu.
