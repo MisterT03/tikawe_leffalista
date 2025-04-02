@@ -32,7 +32,6 @@ Mac/Linux:
 
 `source venv/bin/activate`
 
-Asenna riippuvuudet
 Asenna tarvittavat Python-kirjastot:
 
 `pip install flask`
