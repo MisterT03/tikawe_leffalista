@@ -11,6 +11,7 @@ CREATE TABLE movies (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT NOT NULL,
     genre TEXT NOT NULL,
+    year INTEGER NOT NULL,  -- Lisätään year-sarake
     rating INTEGER,
     user_id INTEGER,
     FOREIGN KEY (user_id) REFERENCES users (id)
