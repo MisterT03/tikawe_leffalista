@@ -4,11 +4,10 @@ DATABASE = "database.db"
 
 def get_db_connection():
     conn = sqlite3.connect(DATABASE)
-    conn.row_factory = sqlite3.Row  # Mahdollistaa tulosten käsittelyn sanakirjoina
+    conn.row_factory = sqlite3.Row
     return conn
 
 def create_tables():
-    """Luo tietokantataulut, jos niitä ei vielä ole."""
     conn = get_db_connection()
     cursor = conn.cursor()
 
