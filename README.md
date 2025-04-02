@@ -6,7 +6,7 @@ Tämä on elokuvatietokannan hallintasovellus, jossa käyttäjät voivat rekiste
 
 - Käyttäjät voivat luoda tunnuksen ja kirjautua sisään
 - Käyttäjät voivat lisätä, muokata ja poistaa elokuvia
-- Elokuvia voi etsiä hakusanalla
+- Elokuvia voi etsiä hakusanalla (pitäisi nyt toimia ja hakutoiminnolla voi myös hakea genren tai vuoden perusteella)
 - Käyttäjät voivat kirjautua ulos
 
 ## Teknologiat
@@ -15,15 +15,34 @@ Tämä on elokuvatietokannan hallintasovellus, jossa käyttäjät voivat rekiste
 - SQLite (Tietokanta)
 - HTML, CSS (Käyttöliittymä)
 
-## Käyttöohjeet
 
-1. Varmista, että sinulla on Python asennettuna.
-2. Asenna riippuvuudet:
-$ pip install flask
-$ pip install bcrypt
-$ pip install flask_sqlalchemy
+## Asennusohje
 
-3. Suorita sovellus:
-    python app.py
+Luo virtuaaliympäristö:
+
+python3 -m venv venv
+
+Aktivoi virtuaaliympäristö:
+
+Windows:
+venv\Scripts\activate
+
+Mac/Linux:
+source venv/bin/activate
+
+3. Asenna riippuvuudet
+Asenna tarvittavat Python-kirjastot:
+pip install flask
+
+4. Luo tietokannan taulut
+Sovelluksessa käytetään SQLite-tietokantaa. Luo tietokannan taulut ajamalla seuraava komento:
+python app.py
+
+Tai, jos haluat käyttää valmista SQL-tiedostoa:
+sqlite3 database.db < init.sql
+
+5. Suorita sovellus
+Kun kaikki on asetettu, voit käynnistää sovelluksen seuraavalla komennolla:
+flask run
 
 Pääasiallinen tietokohde on elokuva ja toissijainen tietokohde on arvostelu (W.I.P).
