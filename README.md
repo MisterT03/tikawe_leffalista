@@ -43,6 +43,6 @@ Tai, jos haluat käyttää valmista SQL-tiedostoa:
 
 5. Suorita sovellus
 Kun kaikki on asetettu, voit käynnistää sovelluksen seuraavalla komennolla:
-flask run
+`flask run`
 
 Pääasiallinen tietokohde on elokuva ja toissijainen tietokohde on arvostelu (W.I.P).
