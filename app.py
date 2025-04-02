@@ -3,7 +3,6 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 from werkzeug.security import generate_password_hash, check_password_hash
 from db import create_tables
 
-# Luo taulut, jos niitä ei ole
 create_tables()
 
 app = Flask(__name__)
@@ -71,20 +70,18 @@ def movies():
 
     user_id = session['user_id']
 
-    # Jos käyttäjä tekee haun
     if request.method == 'POST':
         search_query = request.form['search']
         
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        # SQL-kysely, joka hakee elokuvia nimen, genren tai vuoden perusteella
         cursor.execute("""
             SELECT * FROM movies
             WHERE user_id = ? AND (title LIKE ? OR genre LIKE ? OR year LIKE ?)
         """, (user_id, f"%{search_query}%", f"%{search_query}%", f"%{search_query}%"))
 
-        movies = cursor.fetchall()  # Hakee kaikki osumat
+        movies = cursor.fetchall()
 
         conn.close()
     else:
