@@ -32,19 +32,15 @@ Mac/Linux:
 
 `source venv/bin/activate`
 
-3. Asenna riippuvuudet
+Asenna riippuvuudet
 Asenna tarvittavat Python-kirjastot:
 
 `pip install flask`
 
-5. Luo tietokannan taulut
+Luo tietokannan taulut
 Sovelluksessa käytetään SQLite-tietokantaa. Luo tietokannan taulut ajamalla seuraava komento:
 
 `python app.py`
-
-Tai, jos haluat käyttää valmista SQL-tiedostoa:
-
-`sqlite3 database.db < init.sql`
 
 5. Suorita sovellus
 Kun kaikki on asetettu, voit käynnistää sovelluksen seuraavalla komennolla:
