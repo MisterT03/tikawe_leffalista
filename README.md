@@ -6,8 +6,12 @@ Tämä on elokuvatietokannan hallintasovellus, jossa käyttäjät voivat rekiste
 
 - Käyttäjät voivat luoda tunnuksen ja kirjautua sisään
 - Käyttäjät voivat lisätä, muokata ja poistaa elokuvia
-- Elokuvia voi etsiä hakusanalla (pitäisi nyt toimia ja hakutoiminnolla voi myös hakea genren tai vuoden perusteella)
+- Elokuvia voi etsiä hakusanalla 
 - Käyttäjät voivat kirjautua ulos
+- Käyttäjäsivut toimivat ja näyttävät tilastoja sekä käyttäjän omat elokuvat
+- Elokuville voi lisätä useita luokkia, jotka tallentuvat ja näkyvät käyttöliittymässä
+- Muiden käyttäjien elokuviin voi lisätä kommentteja
+
 
 ## Teknologiat
 
