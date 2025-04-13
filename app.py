@@ -57,6 +57,7 @@ def login():
 
         if user and check_password_hash(user['password'], password):
             session['user_id'] = user['id']
+            session['username'] = user['username']
             flash('Tervetuloa takaisin!')
             return redirect(url_for('movies'))
         else:
@@ -69,56 +70,85 @@ def movies():
         return redirect(url_for('login'))
 
     user_id = session['user_id']
+    conn = get_db_connection()
+    cursor = conn.cursor()
 
     if request.method == 'POST':
         search_query = request.form['search']
-        
-        conn = get_db_connection()
-        cursor = conn.cursor()
-
         cursor.execute("""
-            SELECT * FROM movies
-            WHERE user_id = ? AND (title LIKE ? OR genre LIKE ? OR year LIKE ?)
-        """, (user_id, f"%{search_query}%", f"%{search_query}%", f"%{search_query}%"))
-
-        movies = cursor.fetchall()
-
-        conn.close()
+            SELECT movies.*, users.username FROM movies
+            JOIN users ON users.id = movies.user_id
+            WHERE title LIKE ? OR year LIKE ?
+        """, (f"%{search_query}%", f"%{search_query}%"))
     else:
-        conn = get_db_connection()
-        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT movies.*, users.username FROM movies
+            JOIN users ON users.id = movies.user_id
+        """)
 
-        cursor.execute("SELECT * FROM movies WHERE user_id = ?", (user_id,))
-        movies = cursor.fetchall()
+    movie_rows = cursor.fetchall()
 
-        conn.close()
+    movies = []
+    for movie in movie_rows:
+        cursor.execute("""
+            SELECT categories.name FROM categories
+            JOIN movie_categories ON movie_categories.category_id = categories.id
+            WHERE movie_categories.movie_id = ?
+        """, (movie['id'],))
+        categories = [row["name"] for row in cursor.fetchall()]
 
-    return render_template('movies.html', movies=movies)
+        movie_dict = dict(movie)
+        movie_dict["categories"] = ', '.join(categories) if categories else "Ei määriteltyjä kategorioita"
+        movies.append(movie_dict)
+
+    conn.close()
+    return render_template('movies.html', movies=movies, user_id=user_id)
+
 
 @app.route('/add_movie', methods=['GET', 'POST'])
 def add_movie():
     if 'user_id' not in session:
         return redirect(url_for('login'))
 
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM categories")
+    categories = cursor.fetchall()
+
     if request.method == 'POST':
         title = request.form['title']
-        genre = request.form['genre']
         year = request.form['year']
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("INSERT INTO movies (title, genre, year, user_id) VALUES (?, ?, ?, ?)", (title, genre, year, session['user_id']))
+        selected_categories = request.form.getlist('categories')
+
+        cursor.execute("INSERT INTO movies (title, genre, year, user_id) VALUES (?, ?, ?, ?)",
+                       (title, "", year, session['user_id']))
+        movie_id = cursor.lastrowid
+
+        for cat_id in selected_categories:
+            cursor.execute("INSERT INTO movie_categories (movie_id, category_id) VALUES (?, ?)", (movie_id, cat_id))
+
         conn.commit()
         conn.close()
         flash('Elokuva lisätty onnistuneesti!')
         return redirect(url_for('movies'))
-    return render_template('add_movie.html')
+
+    conn.close()
+    return render_template('add_movie.html', categories=categories)
 
 @app.route('/delete_movie/<int:movie_id>')
 def delete_movie(movie_id):
     if 'user_id' not in session:
         return redirect(url_for('login'))
+    
     conn = get_db_connection()
     cursor = conn.cursor()
+    cursor.execute("SELECT * FROM movies WHERE id = ?", (movie_id,))
+    movie = cursor.fetchone()
+
+    if movie is None or movie['user_id'] != session['user_id']:
+        flash('Et voi poistaa muiden elokuvia!')
+        return redirect(url_for('movies'))
+
     cursor.execute("DELETE FROM movies WHERE id = ?", (movie_id,))
     conn.commit()
     conn.close()
@@ -129,28 +159,172 @@ def delete_movie(movie_id):
 def edit_movie(movie_id):
     if 'user_id' not in session:
         return redirect(url_for('login'))
+
     conn = get_db_connection()
     cursor = conn.cursor()
+
     cursor.execute("SELECT * FROM movies WHERE id = ?", (movie_id,))
     movie = cursor.fetchone()
 
+    if movie is None or movie['user_id'] != session['user_id']:
+        flash('Et voi muokata muiden elokuvia!')
+        return redirect(url_for('movies'))
+
+    cursor.execute("SELECT * FROM categories")
+    categories = cursor.fetchall()
+
+    cursor.execute("""
+        SELECT category_id FROM movie_categories WHERE movie_id = ?
+    """, (movie_id,))
+    selected_category_ids = [row['category_id'] for row in cursor.fetchall()]
+
     if request.method == 'POST':
         title = request.form['title']
-        genre = request.form['genre']
         year = request.form['year']
-        cursor.execute("UPDATE movies SET title = ?, genre = ?, year = ? WHERE id = ?", (title, genre, year, movie_id))
+        selected_categories = request.form.getlist('categories')
+
+        cursor.execute("""
+            UPDATE movies SET title = ?, year = ? WHERE id = ?
+        """, (title, year, movie_id))
+
+        cursor.execute("DELETE FROM movie_categories WHERE movie_id = ?", (movie_id,))
+
+        for cat_id in selected_categories:
+            cursor.execute("""
+                INSERT INTO movie_categories (movie_id, category_id) VALUES (?, ?)
+            """, (movie_id, cat_id))
+
         conn.commit()
         conn.close()
         flash('Elokuva päivitetty onnistuneesti!')
         return redirect(url_for('movies'))
+
     conn.close()
-    return render_template('edit_movie.html', movie=movie)
+    return render_template('edit_movie.html', movie=movie, categories=categories, selected_category_ids=selected_category_ids)
 
 @app.route('/logout')
 def logout():
     session.pop('user_id', None)
     flash('Olet kirjautunut ulos')
     return redirect(url_for('login'))
+
+@app.route('/profile')
+def profile():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    user_id = session['user_id']
+
+    cursor.execute("SELECT COUNT(*) FROM movies WHERE user_id = ?", (user_id,))
+    movie_count = cursor.fetchone()[0]
+
+    cursor.execute("SELECT AVG(year) FROM movies WHERE user_id = ?", (user_id,))
+    avg_year = cursor.fetchone()[0]
+
+    cursor.execute("""
+        SELECT category_id, COUNT(*) AS count
+        FROM movie_categories
+        JOIN categories ON movie_categories.category_id = categories.id
+        WHERE movie_categories.movie_id IN (SELECT id FROM movies WHERE user_id = ?)
+        GROUP BY category_id
+        ORDER BY count DESC
+        LIMIT 1
+    """, (user_id,))
+    most_common_genre = cursor.fetchone()
+    most_common_genre = most_common_genre['category_id'] if most_common_genre else None
+
+    if most_common_genre:
+        cursor.execute("SELECT name FROM categories WHERE id = ?", (most_common_genre,))
+        most_common_genre = cursor.fetchone()['name']
+    else:
+        most_common_genre = "Ei genrejä"
+
+    cursor.execute("""
+        SELECT movies.title, movies.year, categories.name
+        FROM movies
+        LEFT JOIN movie_categories ON movie_categories.movie_id = movies.id
+        LEFT JOIN categories ON categories.id = movie_categories.category_id
+        WHERE movies.user_id = ?
+    """, (user_id,))
+    user_movies = cursor.fetchall()
+
+    user_movies_combined = []
+    for movie in user_movies:
+        found_movie = next((item for item in user_movies_combined if item['title'] == movie['title']), None)
+        if found_movie:
+            found_movie['genres'].append(movie['name'])
+        else:
+            user_movies_combined.append({'title': movie['title'], 'year': movie['year'], 'genres': [movie['name']]})
+
+    conn.close()
+
+    return render_template('profile.html',
+                           movie_count=movie_count,
+                           avg_year=avg_year,
+                           most_common_genre=most_common_genre,
+                           user_movies=user_movies_combined)
+
+@app.route('/add_comment/<int:movie_id>', methods=['POST'])
+def add_comment(movie_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    content = request.form['content']
+    user_id = session['user_id']
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("INSERT INTO comments (movie_id, user_id, content) VALUES (?, ?, ?)",
+                   (movie_id, user_id, content))
+
+    conn.commit()
+    conn.close()
+
+    flash('Kommentti lisätty onnistuneesti!')
+    return redirect(url_for('movie_details', movie_id=movie_id))
+
+@app.route('/movie/<int:movie_id>', methods=['GET', 'POST'])
+def movie_details(movie_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM movies WHERE id = ?", (movie_id,))
+    movie = cursor.fetchone()
+
+    cursor.execute("""
+        SELECT categories.name FROM categories
+        JOIN movie_categories ON movie_categories.category_id = categories.id
+        WHERE movie_categories.movie_id = ?
+    """, (movie_id,))
+    categories = [row['name'] for row in cursor.fetchall()]
+
+    cursor.execute("""
+        SELECT comments.comment, users.username 
+        FROM comments 
+        JOIN users ON users.id = comments.user_id 
+        WHERE comments.movie_id = ?
+    """, (movie_id,))
+    comments = cursor.fetchall()
+
+    if request.method == 'POST':
+        comment = request.form['comment']
+        user_id = session['user_id']
+        cursor.execute("INSERT INTO comments (movie_id, user_id, comment) VALUES (?, ?, ?)", 
+                       (movie_id, user_id, comment))
+        conn.commit()
+        flash("Kommentti lisätty onnistuneesti!")
+        return redirect(url_for('movie_details', movie_id=movie_id))
+
+    conn.close()
+
+    return render_template('movie_details.html', movie=movie, categories=categories, comments=comments)
 
 if __name__ == '__main__':
     app.run(debug=True)
