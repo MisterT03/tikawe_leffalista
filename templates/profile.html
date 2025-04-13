@@ -1,0 +1,22 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <h2>Oma profiili</h2>
+    <p><strong>Lisättyjen elokuvien määrä:</strong> {{ movie_count }}</p>
+    <p><strong>Keskimääräinen julkaisuvuosi:</strong> {{ avg_year }}</p>
+    <p><strong>Yleisin genre:</strong> {{ most_common_genre }}</p>
+
+    <h3>Omat elokuvat</h3>
+    <ul>
+        {% for movie in user_movies %}
+            <li>
+                <strong>{{ movie.title }}</strong> ({{ movie.year }}) 
+                {% if movie.genres %}
+                    - Genre: {{ movie.genres | join(', ') }}
+                {% else %}
+                    - Ei määriteltyä genreä
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}
