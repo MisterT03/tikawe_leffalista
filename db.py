@@ -58,6 +58,18 @@ def create_tables():
         )
     """)
 
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS ratings (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        movie_id INTEGER NOT NULL,
+        user_id INTEGER NOT NULL,
+        rating INTEGER CHECK(rating >= 1 AND rating <= 5),
+        FOREIGN KEY (movie_id) REFERENCES movies(id),
+        FOREIGN KEY (user_id) REFERENCES users(id),
+        UNIQUE (movie_id, user_id) -- yksi arvio per käyttäjä per elokuva
+    )
+    """)
+
     default_categories = ["Draama", "Komedia", "Scifi", "Kauhu", "Toiminta", "Romantiikka"]
     for category in default_categories:
         try:
