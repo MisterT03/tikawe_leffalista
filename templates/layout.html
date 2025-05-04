@@ -4,20 +4,38 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Leffalista{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
 </head>
 <body>
     <header>
         <nav>
             <ul>
                 <li><a href="/">Etusivu</a></li>
-                <li><a href="/register">Rekisteröidy</a></li>
-                <li><a href="/login">Kirjaudu sisään</a></li>
-                <li><a href="/movies">Elokuvat</a></li>
+                {% if 'user_id' not in session %}
+                    <li><a href="/register">Rekisteröidy</a></li>
+                    <li><a href="/login">Kirjaudu sisään</a></li>
+                {% else %}
+                    <li><a href="/movies">Elokuvat</a></li>
+                    <li class="profile"><a href="/profile">{{ session['username'] }}</a></li> <!-- Profiililinkki -->
+                    <li><a href="/logout">Kirjaudu ulos</a></li>
+                {% endif %}
             </ul>
         </nav>
     </header>
 
     <main>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-container">
+                    {% for category, message in messages %}
+                        <div class="flash {{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
         {% block content %}
         {% endblock %}
     </main>
