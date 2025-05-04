@@ -19,12 +19,41 @@
         {% endfor %}
     </ul>
 
+    <h3>Anna arvosana</h3>
+    <form method="POST" action="{{ url_for('movie_details', movie_id=movie['id']) }}">
+        <label for="rating">Arvosana (1–5):</label>
+        <input type="number" name="rating" min="1" max="5" required
+               {% if user_rating %} value="{{ user_rating }}" {% endif %}>
+        <button type="submit">Lähetä arvosana</button>
+    </form>
+
+    {% if avg_rating %}
+        <p>Keskimääräinen arvosana: {{ avg_rating|round(1) }}/5</p>
+    {% else %}
+        <p>Ei vielä arvosanoja.</p>
+    {% endif %}
+
+    {% if user_rating %}
+        <p>Oma arvosanasi: {{ user_rating }}/5</p>
+    {% endif %}
+
     {% if 'user_id' in session %}
         <h3>Lisää kommentti</h3>
-        <form method="POST">
-            <textarea name="comment" placeholder="Kirjoita kommenttisi..." required></textarea><br>
+        <form method="POST" action="{{ url_for('movie_details', movie_id=movie['id']) }}">
+            <textarea name="comment" placeholder="Kirjoita kommenttisi..." maxlength="500" required></textarea><br>
+            <small>Max 500 merkkiä. Jäljellä: <span id="charCount">500</span></small><br>
             <button type="submit">Lisää kommentti</button>
         </form>
+
+        <script>
+            const commentField = document.querySelector('textarea[name="comment"]');
+            const charCount = document.getElementById('charCount');
+
+            commentField.addEventListener('input', function() {
+                const remaining = 500 - commentField.value.length;
+                charCount.textContent = remaining;
+            });
+        </script>
     {% else %}
         <p>Kirjaudu sisään lisätäksesi kommentteja.</p>
     {% endif %}
