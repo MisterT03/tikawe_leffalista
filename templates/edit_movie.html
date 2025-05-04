@@ -4,17 +4,20 @@
     <h2>Muokkaa elokuvaa</h2>
     <form method="POST">
         <label for="title">Otsikko:</label>
-        <input type="text" name="title" value="{{ movie.title }}" required><br>
+        <input type="text" name="title" value="{{ movie.title }}" maxlength="150" required><br>
 
         <label for="year">Vuosi:</label>
         <input type="number" name="year" value="{{ movie.year }}" required><br>
 
-        <label for="categories">Kategoriat:</label><br>
+        <label>Kategoriat:</label><br>
         {% for category in categories %}
             <input type="checkbox" name="categories" value="{{ category.id }}"
                 {% if category.id in selected_category_ids %}checked{% endif %}>
             {{ category.name }}<br>
         {% endfor %}
+
+        <label for="new_category">Tai lisää uusi genre:</label><br>
+        <input type="text" name="new_category" id="new_category" maxlength="50"><br><br>
 
         <button type="submit">Tallenna muutokset</button>
     </form>
