@@ -1,6 +1,6 @@
 # Tikawe Leffalista
 
-Tämä on elokuvatietokannan hallintasovellus, jossa käyttäjät voivat rekisteröityä, kirjautua sisään, lisätä elokuvia, muokata niitä, poistaa ja etsiä elokuvia.
+Tämä on elokuvatietokannan hallintasovellus, jossa käyttäjät voivat rekisteröityä, kirjautua sisään, lisätä elokuvia, muokata niitä, poistaa sekä etsiä elokuvia.
 
 ## Ominaisuudet
 
@@ -8,9 +8,10 @@ Tämä on elokuvatietokannan hallintasovellus, jossa käyttäjät voivat rekiste
 - Käyttäjät voivat lisätä, muokata ja poistaa elokuvia
 - Elokuvia voi etsiä hakusanalla 
 - Käyttäjät voivat kirjautua ulos
-- Käyttäjäsivut toimivat ja näyttävät tilastoja sekä käyttäjän omat elokuvat
+- Käyttäjäprofiilissa näytetään omat elokuvat ja tilastot
 - Elokuville voi lisätä useita luokkia, jotka tallentuvat ja näkyvät käyttöliittymässä
 - Muiden käyttäjien elokuviin voi lisätä kommentteja
+- Elokuvia voi arvostella asteikolla 1–5 ja kommentoida
 
 
 ## Teknologiat
@@ -50,4 +51,6 @@ Kun kaikki on asetettu, voit käynnistää sovelluksen seuraavalla komennolla:
 
 `flask run`
 
-Pääasiallinen tietokohde on elokuva ja toissijainen tietokohde on arvostelu (W.I.P).
+- Elokuva – pääasiallinen kohde
+
+- Arvostelu – toissijainen kohde (1–5 tähteä + kommentti)
