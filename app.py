@@ -1,5 +1,6 @@
 import sqlite3
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+import secrets
+from flask import Flask, render_template, request, redirect, url_for, flash, session, abort
 from werkzeug.security import generate_password_hash, check_password_hash
 from db import create_tables
 
@@ -12,6 +13,18 @@ def get_db_connection():
     conn = sqlite3.connect("database.db")
     conn.row_factory = sqlite3.Row
     return conn
+
+@app.before_request
+def csrf_protect():
+    if request.method == "POST":
+        # CSRF-token tarkistus
+        token = session.get('csrf_token')
+        form_token = request.form.get('csrf_token')
+        if not token or not form_token or token != form_token:
+            abort(400, description="CSRF token invalid or missing")
+    # Luo token, jos ei vielä ole
+    if 'csrf_token' not in session:
+        session['csrf_token'] = secrets.token_hex(16)
 
 @app.route('/')
 def index():
@@ -120,7 +133,13 @@ def add_movie():
 
     if request.method == "POST":
         title = request.form["title"].strip()
-        year = int(request.form["year"])
+        try:
+            year = int(request.form["year"])
+        except ValueError:
+            flash("Vuosi pitää olla numero.", "error")
+            conn.close()
+            return redirect(request.url)
+
         new_category = request.form.get("new_category", "").strip()
         selected_ids = request.form.getlist("categories")
 
@@ -168,6 +187,7 @@ def delete_movie(movie_id):
 
     if movie is None or movie['user_id'] != session['user_id']:
         flash('Et voi poistaa muiden elokuvia!')
+        conn.close()
         return redirect(url_for('movies'))
 
     cursor.execute("DELETE FROM movies WHERE id = ?", (movie_id,))
@@ -193,7 +213,12 @@ def edit_movie(movie_id):
 
     if request.method == "POST":
         title = request.form["title"].strip()
-        year = int(request.form["year"])
+        try:
+            year = int(request.form["year"])
+        except ValueError:
+            flash("Vuosi pitää olla numero.", "error")
+            return redirect(request.url)
+
         new_category = request.form.get("new_category", "").strip()
         selected_ids = request.form.getlist("categories")
 
@@ -231,6 +256,7 @@ def edit_movie(movie_id):
 @app.route('/logout')
 def logout():
     session.pop('user_id', None)
+    session.pop('username', None)
     flash('Olet kirjautunut ulos')
     return redirect(url_for('login'))
 
@@ -306,7 +332,8 @@ def movie_details(movie_id):
 
     if movie is None:
         flash("Elokuvaa ei löytynyt.", "error")
-        return redirect(url_for('home'))
+        conn.close()
+        return redirect(url_for('index'))
 
     cursor.execute(""" 
         SELECT categories.name FROM categories
@@ -344,6 +371,7 @@ def movie_details(movie_id):
 
             if len(comment) > 500:
                 flash("Kommentin maksimipituus on 500 merkkiä.", "error")
+                conn.close()
                 return redirect(url_for('movie_details', movie_id=movie_id))
 
             user_id = session['user_id']
@@ -354,6 +382,7 @@ def movie_details(movie_id):
                 flash("Kommentti lisätty onnistuneesti!")
             except Exception as e:
                 flash(f"Virhe kommentin lisäämisessä: {e}", "error")
+            conn.close()
             return redirect(url_for('movie_details', movie_id=movie_id))
 
         elif 'rating' in request.form:
@@ -374,6 +403,7 @@ def movie_details(movie_id):
                 flash("Arvosana tallennettu onnistuneesti.")
             except Exception as e:
                 flash(f"Virhe arvosanan tallentamisessa: {e}", "error")
+            conn.close()
             return redirect(url_for('movie_details', movie_id=movie_id))
 
     conn.close()
