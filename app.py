@@ -17,12 +17,10 @@ def get_db_connection():
 @app.before_request
 def csrf_protect():
     if request.method == "POST":
-        # CSRF-token tarkistus
         token = session.get('csrf_token')
         form_token = request.form.get('csrf_token')
         if not token or not form_token or token != form_token:
             abort(400, description="CSRF token invalid or missing")
-    # Luo token, jos ei vielä ole
     if 'csrf_token' not in session:
         session['csrf_token'] = secrets.token_hex(16)
 
@@ -60,7 +58,7 @@ def register():
         flash('Käyttäjä luotu onnistuneesti!')
         return redirect(url_for('login'))
 
-    return render_template('register.html')
+    return render_template('register.html', csrf_token=session.get('csrf_token'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -80,7 +78,8 @@ def login():
             return redirect(url_for('movies'))
         else:
             flash('Virheellinen tunnus tai salasana')
-    return render_template('login.html')
+    return render_template('login.html', csrf_token=session.get('csrf_token'))
+
 
 @app.route('/movies', methods=['GET', 'POST'])
 def movies():
