@@ -119,7 +119,7 @@ def movies():
         movies.append(movie_dict)
 
     conn.close()
-    return render_template('movies.html', movies=movies, user_id=user_id)
+    return render_template('movies.html', movies=movies, user_id=user_id, csrf_token=session.get('csrf_token'))
 
 @app.route("/add", methods=["GET", "POST"])
 def add_movie():
@@ -172,13 +172,18 @@ def add_movie():
         return redirect("/movies")
 
     conn.close()
-    return render_template("add_movie.html", categories=categories)
+    return render_template("add_movie.html", categories=categories, csrf_token=session.get('csrf_token'))
 
-@app.route('/delete_movie/<int:movie_id>')
+@app.route('/delete_movie/<int:movie_id>', methods=['POST'])
 def delete_movie(movie_id):
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    
+
+    token = session.get('csrf_token')
+    form_token = request.form.get('csrf_token')
+    if not token or not form_token or token != form_token:
+        abort(400, description="CSRF token invalid or missing")
+
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM movies WHERE id = ?", (movie_id,))
@@ -249,7 +254,7 @@ def edit_movie(movie_id):
     selected_category_ids = [row["category_id"] for row in selected_rows]
     conn.close()
 
-    return render_template("edit_movie.html", movie=movie, categories=categories, selected_category_ids=selected_category_ids)
+    return render_template("edit_movie.html", movie=movie, categories=categories, selected_category_ids=selected_category_ids, csrf_token=session.get('csrf_token'))
 
 
 @app.route('/logout')
@@ -408,7 +413,7 @@ def movie_details(movie_id):
     conn.close()
 
     return render_template('movie_details.html', movie=movie, categories=categories, comments=comments, 
-                           user_rating=user_rating, avg_rating=avg_rating)
+                           user_rating=user_rating, avg_rating=avg_rating, csrf_token=session.get('csrf_token'))
 
 @app.route('/movies/<int:movie_id>/rate', methods=['POST'])
 def rate_movie(movie_id):
