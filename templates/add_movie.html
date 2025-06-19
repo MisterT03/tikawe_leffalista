@@ -6,6 +6,8 @@
     <h2>Lisää uusi elokuva</h2>
 
     <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        
         <label for="title">Elokuvan nimi:</label><br>
         <input type="text" name="title" id="title" maxlength="150" required><br><br>
 
