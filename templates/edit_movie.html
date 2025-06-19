@@ -3,6 +3,8 @@
 {% block content %}
     <h2>Muokkaa elokuvaa</h2>
     <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        
         <label for="title">Otsikko:</label>
         <input type="text" name="title" value="{{ movie.title }}" maxlength="150" required><br>
 
