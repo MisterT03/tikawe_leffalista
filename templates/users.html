@@ -6,6 +6,7 @@
 <h2>Luo tunnus</h2>
 
 <form action="/create" method="POST">
+    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
     <div>
         <label for="username">Käyttäjätunnus:</label>
         <input type="text" name="username" id="username" required>
