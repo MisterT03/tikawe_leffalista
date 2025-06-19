@@ -3,8 +3,8 @@
 {% block content %}
     <h2><strong>Elokuvat</strong></h2>
 
-    <!-- Hakulomake -->
     <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
         <input type="text" name="search" placeholder="Hae elokuvaa...">
         <button type="submit">Hae</button>
     </form>
