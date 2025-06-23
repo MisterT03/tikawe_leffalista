@@ -21,7 +21,7 @@
 
     <h3>Anna arvosana</h3>
     <form method="POST" action="{{ url_for('movie_details', movie_id=movie['id']) }}">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}" />
         <label for="rating">Arvosana (1–5):</label>
         <input type="number" name="rating" min="1" max="5" required
                {% if user_rating %} value="{{ user_rating }}" {% endif %}>
@@ -41,7 +41,7 @@
     {% if 'user_id' in session %}
         <h3>Lisää kommentti</h3>
         <form method="POST" action="{{ url_for('movie_details', movie_id=movie['id']) }}">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}" />
             <textarea name="comment" placeholder="Kirjoita kommenttisi..." maxlength="500" required></textarea><br>
             <small>Max 500 merkkiä. Jäljellä: <span id="charCount">500</span></small><br>
             <button type="submit">Lisää kommentti</button>
