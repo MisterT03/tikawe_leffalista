@@ -14,15 +14,11 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
-@app.before_request
-def csrf_protect():
-    if request.method == "POST":
-        token = session.get('csrf_token')
-        form_token = request.form.get('csrf_token')
-        if not token or not form_token or token != form_token:
-            abort(400, description="CSRF token invalid or missing")
-    if 'csrf_token' not in session:
-        session['csrf_token'] = secrets.token_hex(16)
+def check_csrf():
+    if "csrf_token" not in request.form:
+        abort(403)
+    if request.form["csrf_token"] != session["csrf_token"]:
+        abort(403)
 
 @app.route('/')
 def index():
@@ -31,6 +27,7 @@ def index():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
+        check_csrf()
         username = request.form['username']
         password1 = request.form['password1']
         password2 = request.form['password2']
@@ -58,7 +55,7 @@ def register():
         flash('Käyttäjä luotu onnistuneesti!')
         return redirect(url_for('login'))
 
-    return render_template('register.html', csrf_token=session.get('csrf_token'))
+    return render_template('register.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -74,11 +71,12 @@ def login():
         if user and check_password_hash(user['password'], password):
             session['user_id'] = user['id']
             session['username'] = user['username']
+            session['csrf_token'] = secrets.token_hex(16)
             flash('Tervetuloa takaisin!')
             return redirect(url_for('movies'))
         else:
             flash('Virheellinen tunnus tai salasana')
-    return render_template('login.html', csrf_token=session.get('csrf_token'))
+    return render_template('login.html')
 
 
 @app.route('/movies', methods=['GET', 'POST'])
@@ -91,6 +89,7 @@ def movies():
     cursor = conn.cursor()
 
     if request.method == 'POST':
+        check_csrf()
         search_query = request.form['search']
         cursor.execute(""" 
             SELECT movies.*, users.username FROM movies
@@ -119,7 +118,7 @@ def movies():
         movies.append(movie_dict)
 
     conn.close()
-    return render_template('movies.html', movies=movies, user_id=user_id, csrf_token=session.get('csrf_token'))
+    return render_template('movies.html', movies=movies, user_id=user_id)
 
 @app.route("/add", methods=["GET", "POST"])
 def add_movie():
@@ -131,6 +130,7 @@ def add_movie():
     categories = conn.execute("SELECT * FROM categories").fetchall()
 
     if request.method == "POST":
+        check_csrf()
         title = request.form["title"].strip()
         try:
             year = int(request.form["year"])
@@ -172,17 +172,14 @@ def add_movie():
         return redirect("/movies")
 
     conn.close()
-    return render_template("add_movie.html", categories=categories, csrf_token=session.get('csrf_token'))
+    return render_template("add_movie.html", categories=categories)
 
 @app.route('/delete_movie/<int:movie_id>', methods=['POST'])
 def delete_movie(movie_id):
     if 'user_id' not in session:
         return redirect(url_for('login'))
 
-    token = session.get('csrf_token')
-    form_token = request.form.get('csrf_token')
-    if not token or not form_token or token != form_token:
-        abort(400, description="CSRF token invalid or missing")
+    check_csrf()
 
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -216,6 +213,8 @@ def edit_movie(movie_id):
     categories = conn.execute("SELECT * FROM categories").fetchall()
 
     if request.method == "POST":
+        check_csrf()
+
         title = request.form["title"].strip()
         try:
             year = int(request.form["year"])
@@ -254,7 +253,7 @@ def edit_movie(movie_id):
     selected_category_ids = [row["category_id"] for row in selected_rows]
     conn.close()
 
-    return render_template("edit_movie.html", movie=movie, categories=categories, selected_category_ids=selected_category_ids, csrf_token=session.get('csrf_token'))
+    return render_template("edit_movie.html", movie=movie, categories=categories, selected_category_ids=selected_category_ids)
 
 
 @app.route('/logout')
@@ -370,6 +369,7 @@ def movie_details(movie_id):
     avg_rating = avg_rating_row['avg_rating'] if avg_rating_row['avg_rating'] else None
 
     if request.method == 'POST':
+        check_csrf()
         if 'comment' in request.form:
             comment = request.form['comment'].strip()
 
@@ -413,12 +413,14 @@ def movie_details(movie_id):
     conn.close()
 
     return render_template('movie_details.html', movie=movie, categories=categories, comments=comments, 
-                           user_rating=user_rating, avg_rating=avg_rating, csrf_token=session.get('csrf_token'))
+                           user_rating=user_rating, avg_rating=avg_rating)
 
 @app.route('/movies/<int:movie_id>/rate', methods=['POST'])
 def rate_movie(movie_id):
     if 'user_id' not in session:
         return redirect(url_for('login'))
+
+    check_csrf()
 
     rating = request.form.get('rating')
     user_id = session['user_id']
