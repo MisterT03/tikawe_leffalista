@@ -26,6 +26,8 @@ def index():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+    if 'csrf_token' not in session:
+        session['csrf_token'] = secrets.token_hex(16)
     if request.method == 'POST':
         check_csrf()
         username = request.form['username']
@@ -59,6 +61,8 @@ def register():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    if 'csrf_token' not in session:
+        session['csrf_token'] = secrets.token_hex(16)
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
